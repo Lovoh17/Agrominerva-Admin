@@ -1,0 +1,250 @@
+/* ==================== TAILWIND DIRECTIVES ==================== */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==================== VARIABLES CSS ==================== */
+@layer base {
+  :root {
+    /* Colores Primarios */
+    --primary-color: #22c55e;
+    --primary-color-dark: #16a34a;
+    --primary-color-light: #dcfce7;
+
+    /* Colores Secundarios */
+    --color-secondary: #ef4444;
+    --color-secondary-dark: #dc2626;
+    --color-secondary-light: #fee2e2;
+
+    /* Colores Terciarios */
+    --color-tertiary: #10593b;
+    --color-tertiary-light: #bbf7d0;
+
+    /* Colores Acentos */
+    --color-accent: #faaa21;
+    --color-accent-light: #fef3c7;
+
+    /* Superficies */
+    --surface-0: #ffffff;
+    --surface-50: #f9fafb;
+    --surface-100: #f3f4f6;
+    --surface-200: #e5e7eb;
+    --surface-300: #d1d5db;
+    --surface-600: #4b5563;
+    --surface-700: #374151;
+    --surface-900: #111827;
+
+    /* Textos */
+    --text-color: #374151;
+    --text-color-secondary: #6b7280;
+    --border-color: #e5e7eb;
+
+    /* Tamaños */
+    --sidebar-width: 280px;
+    --sidebar-minimized-width: 80px;
+    --topbar-height: 70px;
+
+    /* Transiciones */
+    --transition-fast: 0.15s ease-in-out;
+    --transition-base: 0.2s ease-in-out;
+    --transition-slow: 0.3s ease-in-out;
+  }
+
+  /* Reset básico */
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: var(--surface-50);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Ocultar scrollbars globalmente */
+  html {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+    transition: background-color 0.3s ease;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Modo oscuro */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-0: #1f2937;
+      --surface-50: #111827;
+      --surface-100: #1f2937;
+      --text-color: #f3f4f6;
+      --text-color-secondary: #d1d5db;
+    }
+  }
+
+  /* Respeto a preferencias de animación reducida */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Selección de texto */
+  ::selection {
+    background: var(--primary-color);
+    color: white;
+  }
+
+  ::-moz-selection {
+    background: var(--primary-color);
+    color: white;
+  }
+
+  /* Botones deshabilitados */
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* ==================== UTILIDADES PERSONALIZADAS ==================== */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ==================== COMPONENTES PERSONALIZADOS ==================== */
+@layer components {
+  /* Elementos del layout con scroll */
+  .layout-menu-container,
+  .layout-panel-content {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .layout-menu-container::-webkit-scrollbar,
+  .layout-panel-content::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Enfoque visible para accesibilidad */
+  .layout-topbar-button:focus-visible,
+  .layout-menu-button:focus-visible,
+  .layout-menuitem-link:focus-visible,
+  .logout-button:focus-visible,
+  .user-menu-list li:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+
+  /* Botones del layout - Área de toque mínima para móvil */
+  .layout-topbar-button,
+  .layout-menu-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Estados activos en móvil */
+  @media (max-width: 991px) {
+    .layout-topbar-button:active,
+    .layout-menu-button:active,
+    .layout-menuitem-link:active {
+      transform: scale(0.95);
+    }
+  }
+
+  /* Items de menú activos */
+  .active-menuitem .layout-menuitem-link {
+    background: linear-gradient(90deg, #dcfce7 0%, transparent 100%);
+    box-shadow: inset -3px 0 0 var(--primary-color);
+  }
+
+  /* Badges en el menú */
+  .layout-menuitem-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 12px;
+    min-width: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Paneles desplegables */
+  .layout-notifications-panel,
+  .layout-user-menu-panel {
+    box-shadow: 
+      0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Items de notificaciones */
+  .notification-item {
+    border-radius: 8px;
+    margin: 4px 8px;
+    padding: 12px;
+    transition: background-color var(--transition-base);
+  }
+
+  .notification-item:hover {
+    background: linear-gradient(90deg, var(--surface-100) 0%, transparent 100%);
+  }
+
+  /* Items del menú de usuario */
+  .user-menu-list li {
+    border-radius: 6px;
+    margin: 2px 8px;
+    padding: 10px 12px;
+    transition: all var(--transition-base);
+  }
+
+  .user-menu-list li:hover {
+    background: var(--surface-100);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Input de búsqueda */
+  .layout-search-input-wrapper input::placeholder {
+    color: var(--text-color-secondary);
+    opacity: 0.7;
+  }
+
+  .layout-search-input-wrapper input:focus {
+    outline: none;
+  }
+
+  /* Skip to main content (accesibilidad) */
+  .skip-to-main {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary-color);
+    color: white;
+    padding: 8px;
+    z-index: 100;
+    transition: top var(--transition-base);
+  }
+
+  .skip-to-main:focus {
+    top: 0;
+  }
+
+  /* Transiciones suaves para ARIA */
+  [aria-live] {
+    transition: opacity 0.3s ease;
+  }
+}

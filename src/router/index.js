@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { authGuard } from './guards'
-import publicRoutes from './publicRoutes'
+//import publicRoutes from './publicRoutes'
 import adminRoutes from './adminRoutes'
 
 const routes = [
-  ...publicRoutes,
+  //...publicRoutes,
   ...adminRoutes,
   {
     path: '/tests',

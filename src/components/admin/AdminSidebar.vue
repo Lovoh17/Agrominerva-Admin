@@ -1,12 +1,12 @@
 <template>
-    <div class="sidebar bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700 transition-all duration-300 ease-in-out flex flex-col"
+    <div class="sidebar bg-emerald-800 border-r border-emerald-700 transition-all duration-300 ease-in-out flex flex-col"
         :class="minimized ? 'w-20' : 'w-64'">
         <!-- Logo -->
-        <div class="p-4 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0">
+        <div class="p-4 border-b border-emerald-700 flex-shrink-0">
             <div class="flex items-center justify-center h-8 w-full overflow-hidden">
                 <img v-if="!minimized" src="../../assets/images/svg/AGRO-MINERVA-VERTICAL-SIN-FONDO.svg" alt="Logo"
-                    class="h-16 scale-[1.7] -translate-y-[2px] max-w-none" />
-                <img v-else src="../../assets/images/svg/AGRO-MINERVA-VERTICAL-SIN-FONDO.svg" alt="Logo" class="h-8" />
+                    class="h-16 scale-[1.7] -translate-y-[2px] max-w-none brightness-0 invert" />
+                <img v-else src="../../assets/images/svg/AGRO-MINERVA-VERTICAL-SIN-FONDO.svg" alt="Logo" class="h-8 brightness-0 invert" />
             </div>
         </div>
 
@@ -15,32 +15,31 @@
             <nav class="space-y-1 px-3">
                 <!-- Menu Items -->
                 <router-link v-for="item in flatMenuItems" :key="item.label" :to="item.to"
-                    class="flex items-center space-x-3 p-3 rounded-lg text-neutral-600 dark:text-neutral-300 hover:bg-primary-50 dark:hover:bg-primary-900 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                    active-class="bg-primary-50 dark:bg-primary-900 text-primary-600 dark:text-primary-400">
+                    class="flex items-center space-x-3 p-3 text-white/80 hover:bg-emerald-700 hover:text-white transition-colors"
+                    active-class="bg-green-600 text-white font-semibold">
                     <i :class="item.icon" class="text-lg"></i>
                     <span v-if="!minimized" class="font-medium">{{ item.label }}</span>
                 </router-link>
             </nav>
         </div>
 
-        <!-- User Profile Section - ALTURA CORREGIDA -->
-        <div
-            class="p-4 border-t border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex-shrink-0 h-14">
+        <!-- User Profile Section -->
+        <div class="p-4 border-t border-emerald-700 bg-emerald-900 flex-shrink-0 h-14">
             <div class="flex items-center justify-between h-full">
                 <div class="flex items-center space-x-3">
                     <Avatar image="/demo/images/avatar/amyelsner.png" shape="circle" size="normal"
-                        class="flex-shrink-0" />
+                        class="flex-shrink-0 ring-2 ring-green-400" />
                     <div v-if="!minimized" class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">
+                        <p class="text-sm font-medium text-white truncate">
                             Amy Elsner
                         </p>
-                        <p class="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                        <p class="text-xs text-emerald-300 truncate">
                             Administrator
                         </p>
                     </div>
                 </div>
                 <Button v-if="!minimized" icon="pi pi-cog" text rounded
-                    class="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 flex-shrink-0" />
+                    class="text-emerald-300 hover:text-white hover:bg-emerald-700 flex-shrink-0" />
             </div>
         </div>
     </div>
@@ -94,12 +93,13 @@ const menuItems = [
                 icon: 'pi pi-tags',
                 to: '/admin/categories'
             },
-            {
-                label: 'Inventario',
-                icon: 'pi pi-database',
-                to: '/admin/inventory'
-            }
+            
         ]
+    },
+    {
+        label: 'Inventario',
+        icon: 'pi pi-database',
+        to: '/admin/inventory'
     },
     {
         label: 'Pedidos',
@@ -141,5 +141,18 @@ const flatMenuItems = computed(() => {
     height: 100vh;
     position: relative;
     z-index: 40;
+}
+
+/* Estilos personalizados para PrimeVue Button */
+:deep(.p-button.p-button-text) {
+    color: inherit;
+}
+
+:deep(.p-button.p-button-text:hover) {
+    background-color: rgba(5, 150, 105, 0.3);
+}
+
+:deep(.p-button.p-button-text:focus) {
+    box-shadow: none;
 }
 </style>

@@ -4,7 +4,7 @@ const publicRoutes = [
   {
     // Ruta padre que utiliza el PublicLayout
     path: '/',
-    component: () => import('@/layouts/PublicLayout.vue'),
+    component: () => import('@/views/auth/Login.vue'),
 
     children: [
       // ===== PÁGINA PRINCIPAL =====

@@ -68,7 +68,7 @@
               <video
                 v-if="showVideo"
                 ref="videoElement"
-                src="@/assets/Videos/Present_VideoWeb.mp4"
+                src=""
                 class="w-full h-full object-cover"
                 :muted="isMuted"
                 autoplay

@@ -1,13 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
-//import { authGuard } from './guards'
+import { authGuard } from './guards'
 import publicRoutes from './publicRoutes'
 import adminRoutes from './adminRoutes'
-import employeeRoutes from './employeeRoutes'
 
 const routes = [
   ...publicRoutes,
   ...adminRoutes,
-  ...employeeRoutes,
   {
     path: '/tests',
     name: 'tests',

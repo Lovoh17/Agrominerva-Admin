@@ -1,10 +1,10 @@
 <template>
-  <header class="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 px-4 py-3 h-16">
+  <header class="bg-emerald-800 border-b border-emerald-700 px-4 py-3 h-16">
     <div class="flex items-center justify-between h-full">
       <!-- Left Section -->
       <div class="flex items-center space-x-4 h-full">
-        <Button icon="pi pi-bars" text rounded
-          class="text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 h-10 w-10 flex items-center justify-center"
+        <Button icon="pi pi-bars" text
+          class="text-white hover:bg-emerald-700 h-10 w-10 flex items-center justify-center"
           @click="$emit('toggle-sidebar')" />
       </div>
       
@@ -12,38 +12,41 @@
       <div class="flex items-center space-x-3 h-full">
         <!-- Search -->
         <span class="p-input-icon-left flex items-center">
-          <InputText v-model="searchQuery" placeholder="Buscar..." class="w-40 md:w-56 h-10" />
+          <i class="pi pi-search text-emerald-600" />
+          <InputText v-model="searchQuery" placeholder="Buscar..." 
+            class="w-40 md:w-56 h-10 bg-white border-emerald-300 focus:border-green-500 focus:ring-green-500" />
         </span>
 
         <!-- Notifications -->
-        <Button icon="pi pi-bell" text rounded
-          class="text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 relative h-10 w-10 flex items-center justify-center"
+        <Button icon="pi pi-bell" text
+          class="text-white hover:bg-emerald-700 relative h-10 w-10 flex items-center justify-center"
           @click="toggleNotifications">
           <Badge v-if="unreadNotifications > 0" :value="unreadNotifications" severity="danger"
-            class="absolute -top-1 -right-1" />
+            class="absolute -top-1 -right-1 bg-orange-600" />
         </Button>
 
         <!-- User Menu -->
         <Menu ref="userMenu" :model="userMenuItems" :popup="true">
           <template #start>
-            <div class="px-4 py-2 border-b border-neutral-200 dark:border-neutral-700">
-              <p class="font-semibold text-neutral-900 dark:text-white">Amy Elsner</p>
-              <p class="text-sm text-neutral-500 dark:text-neutral-400">amy.elsner@example.com</p>
+            <div class="px-4 py-2 border-b border-emerald-200 bg-emerald-50">
+              <p class="font-semibold text-emerald-900">Amy Elsner</p>
+              <p class="text-sm text-emerald-700">amy.elsner@ues.edu.sv</p>
             </div>
           </template>
         </Menu>
 
         <Button :label="userDisplayName" icon="pi pi-user" text
-          class="text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 h-10 flex items-center"
+          class="text-white hover:bg-emerald-700 h-10 flex items-center"
           @click="toggleUserMenu">
           <template #icon>
-            <Avatar image="/demo/images/avatar/amyelsner.png" shape="circle" size="normal" class="mr-2 h-8 w-8" />
+            <Avatar image="/demo/images/avatar/amyelsner.png" shape="circle" size="normal" 
+              class="mr-2 h-8 w-8 ring-2 ring-green-400" />
           </template>
         </Button>
 
         <!-- Dark Mode Toggle -->
-        <Button :icon="darkMode ? 'pi pi-sun' : 'pi pi-moon'" text rounded
-          class="text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 h-10 w-10 flex items-center justify-center"
+        <Button :icon="darkMode ? 'pi pi-sun' : 'pi pi-moon'" text
+          class="text-white hover:bg-emerald-700 h-10 w-10 flex items-center justify-center"
           @click="toggleDarkMode" />
       </div>
     </div>
@@ -92,6 +95,7 @@ const userMenuItems = [
     icon: 'pi pi-sign-out',
     command: () => {
       // Lógica de logout
+      window.location.href = '/login'
     }
   }
 ]
@@ -114,3 +118,52 @@ const toggleDarkMode = () => {
   }
 }
 </script>
+
+<style scoped>
+/* Estilos personalizados para PrimeVue Components */
+:deep(.p-button.p-button-text) {
+  color: inherit;
+}
+
+:deep(.p-button.p-button-text:hover) {
+  background-color: rgba(5, 150, 105, 0.3);
+}
+
+:deep(.p-button.p-button-text:focus) {
+  box-shadow: none;
+}
+
+:deep(.p-inputtext) {
+  border-width: 1px;
+}
+
+:deep(.p-inputtext:focus) {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+:deep(.p-badge) {
+  min-width: 1.25rem;
+  height: 1.25rem;
+  line-height: 1.25rem;
+  font-size: 0.65rem;
+}
+
+/* Estilos para el menú de usuario */
+:deep(.p-menu) {
+  border-color: #d1fae5;
+}
+
+:deep(.p-menu .p-menuitem-link) {
+  color: #047857;
+}
+
+:deep(.p-menu .p-menuitem-link:hover) {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+:deep(.p-menu .p-menuitem-icon) {
+  color: #10b981;
+}
+</style>

@@ -6,7 +6,8 @@
             <div class="flex items-center justify-center h-8 w-full overflow-hidden">
                 <img v-if="!minimized" src="../../assets/images/svg/AGRO-MINERVA-VERTICAL-SIN-FONDO.svg" alt="Logo"
                     class="h-16 scale-[1.7] -translate-y-[2px] max-w-none brightness-0 invert" />
-                <img v-else src="../../assets/images/svg/AGRO-MINERVA-VERTICAL-SIN-FONDO.svg" alt="Logo" class="h-8 brightness-0 invert" />
+                <img v-else src="../../assets/images/svg/AGRO-MINERVA-VERTICAL-SIN-FONDO.svg" alt="Logo"
+                    class="h-8 brightness-0 invert" />
             </div>
         </div>
 
@@ -27,8 +28,7 @@
         <div class="p-4 border-t border-emerald-700 bg-emerald-900 flex-shrink-0 h-14">
             <div class="flex items-center justify-between h-full">
                 <div class="flex items-center space-x-3">
-                    <Avatar image="/demo/images/avatar/amyelsner.png" shape="circle" size="normal"
-                        class="flex-shrink-0 ring-2 ring-green-400" />
+                    <img :src="avatarImage" alt="Avatar" class="w-8 h-8 rounded-full ring-2 ring-green-400 flex-shrink-0 object-cover" />
                     <div v-if="!minimized" class="flex-1 min-w-0">
                         <p class="text-sm font-medium text-white truncate">
                             Amy Elsner
@@ -47,8 +47,10 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import Avatar from 'primevue/avatar'
 import Button from 'primevue/button'
+
+// Importar la imagen del avatar
+import avatarImage from '../../assets/images/DefaultAvatar.jpg'
 
 const props = defineProps({
     minimized: {
@@ -59,62 +61,71 @@ const props = defineProps({
 
 const menuItems = [
     {
-        label: 'Dashboard',
+        label: 'Panel',
         icon: 'pi pi-home',
-        to: '/admin/dashboard'
+        to: '/admin/panel'
+    },
+    {
+        label: 'Punto de Venta',
+        icon: 'pi pi-credit-card',
+        to: '/admin/punto-venta'
     },
     {
         label: 'Usuarios',
         icon: 'pi pi-users',
+        to: '/admin/usuarios'
+    },
+    {
+        label: 'Contenido',
+        icon: 'pi pi-file-edit',
         children: [
             {
-                label: 'Lista de Usuarios',
-                icon: 'pi pi-list',
-                to: '/admin/users'
+                label: 'Publicar Noticia',
+                icon: 'pi pi-megaphone',
+                to: '/admin/noticias/crear'
             },
             {
-                label: 'Agregar Usuario',
-                icon: 'pi pi-user-plus',
-                to: '/admin/users/create'
+                label: 'Publicar Artículo',
+                icon: 'pi pi-file',
+                to: '/admin/articulos/crear'
+            },
+            {
+                label: 'Gestionar Contenido',
+                icon: 'pi pi-list-check',
+                to: '/admin/contenido'
             }
         ]
     },
     {
-        label: 'Productos',
-        icon: 'pi pi-shopping-bag',
+        label: 'Comunicación',
+        icon: 'pi pi-envelope',
         children: [
             {
-                label: 'Todos los Productos',
-                icon: 'pi pi-box',
-                to: '/admin/products'
-            },
-            {
-                label: 'Categorías',
-                icon: 'pi pi-tags',
-                to: '/admin/categories'
-            },
-            
+                label: 'Redactar Correo',
+                icon: 'pi pi-pencil',
+                to: '/admin/correo/redactar'
+            }
         ]
     },
     {
         label: 'Inventario',
         icon: 'pi pi-database',
-        to: '/admin/inventory'
+        to: '/admin/inventario'
     },
     {
         label: 'Pedidos',
         icon: 'pi pi-shopping-cart',
-        to: '/admin/orders'
+        to: '/admin/ordenes'
     },
     {
         label: 'Reportes',
         icon: 'pi pi-chart-bar',
-        to: '/admin/reports'
+        to: '/admin/reportes'
     },
     {
         label: 'Configuración',
         icon: 'pi pi-cog',
-        to: '/admin/settings'
+        to: '/admin/configuracion'
     }
 ]
 

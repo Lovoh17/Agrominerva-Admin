@@ -3,10 +3,10 @@ const adminRoutes = [
   {
     path: '/admin',
     component: () => import('@/layouts/AdminLayout.vue'),
-    redirect: '/admin/dashboard', // Redirect principal
+    redirect: '/admin/panel', // Redirect principal
     children: [
       {
-        path: 'dashboard',
+        path: 'panel',
         name: 'Dashboard Admin',
         component: () => import('@/views/admin/DashboardAdmin.vue'),
         meta: {
@@ -14,15 +14,50 @@ const adminRoutes = [
         }
       },
       {
-        path: 'users',
+        path: 'usuarios',
         name: 'Lista de Usuarios',
         component: () => import('@/views/admin/EmployeeList.vue'),
         meta: {
           requiresAuth: true,
         }
       },
+      // ===== RUTAS DE CONTENIDO =====
       {
-        path: 'reports',
+        path: 'noticias/crear',
+        name: 'Publicar Noticia',
+        component: () => import('@/views/content/NewsCreate.vue'),
+        meta: {
+          requiresAuth: true,
+        }
+      },
+      {
+        path: 'articulos/crear',
+        name: 'Publicar Artículo',
+        component: () => import('@/views/content/ArticleCreate.vue'),
+        meta: {
+          requiresAuth: true,
+        }
+      },
+      {
+        path: 'contenido',
+        name: 'Gestionar Contenido',
+        component: () => import('@/views/content/ContentManagement.vue'),
+        meta: {
+          requiresAuth: true,
+        }
+      },
+      // ===== RUTAS DE COMUNICACIÓN =====
+      {
+        path: 'correo/redactar',
+        name: 'Redactar Correo',
+        component: () => import('@/views/admin/email/EmailCompose.vue'),
+        meta: {
+          requiresAuth: true,
+        }
+      },
+      // ===== RUTAS OPERATIVAS =====
+      {
+        path: 'reportes',
         name: 'Reportes',
         component: () => import('@/views/admin/Reports.vue'),
         meta: {
@@ -30,15 +65,15 @@ const adminRoutes = [
         }
       },
       {
-        path: 'settings',
-        name: 'Configuración', // Corregida la tilde
+        path: 'configuracion',
+        name: 'Configuración',
         component: () => import('@/views/admin/Settings.vue'),
         meta: {
           requiresAuth: true,
         }
       },
       {
-        path: 'inventory',
+        path: 'inventario',
         name: 'Inventario',
         component: () => import('@/views/admin/Inventory.vue'),
         meta: {
@@ -46,16 +81,24 @@ const adminRoutes = [
         }
       },
       {
-        path: 'orders', // Corregido: sin la barra inicial
-        name: 'Órdenes', // Corregida la tilde
+        path: 'ordenes',
+        name: 'Órdenes',
         component: () => import('@/views/admin/Orders.vue'),
+        meta: {
+          requiresAuth: true,
+        }
+      },
+      {
+        path: 'punto-venta',
+        name: 'Punto de Venta',
+        component: () => import('@/views/PointOfSale.vue'),
         meta: {
           requiresAuth: true,
         }
       }
     ]
   },
-  
+
   // Ruta de Login (SIN layout de admin)
   {
     path: '/login',

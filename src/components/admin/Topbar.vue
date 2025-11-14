@@ -35,12 +35,11 @@
           </template>
         </Menu>
 
-        <Button :label="userDisplayName" icon="pi pi-user" text
+        <Button :label="userDisplayName" text
           class="text-white hover:bg-emerald-700 h-10 flex items-center"
           @click="toggleUserMenu">
           <template #icon>
-            <Avatar image="/demo/images/avatar/amyelsner.png" shape="circle" size="normal" 
-              class="mr-2 h-8 w-8 ring-2 ring-green-400" />
+            <img :src="avatarImage" alt="Avatar" class="mr-2 h-8 w-8 rounded-full ring-2 ring-green-400 object-cover" />
           </template>
         </Button>
 
@@ -59,8 +58,10 @@ import { useRoute } from 'vue-router'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Menu from 'primevue/menu'
-import Avatar from 'primevue/avatar'
 import Badge from 'primevue/badge'
+
+// Importar la imagen del avatar
+import avatarImage from '../../assets/images/DefaultAvatar.jpg'
 
 const emit = defineEmits(['toggle-sidebar'])
 

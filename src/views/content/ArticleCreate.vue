@@ -89,8 +89,11 @@
                 <div class="bg-white rounded-md shadow-soft overflow-hidden border border-neutral-200">
                     <div class="p-4 border-b border-neutral-200 flex justify-between items-center bg-neutral-50">
                         <h3 class="text-lg font-semibold text-neutral-900">Contenido *</h3>
-                        <button @click="previewContent"
-                            class="flex items-center gap-2 px-3 py-2 text-sm border border-neutral-300 text-neutral-700 rounded-md hover:bg-neutral-50 transition-colors duration-200">
+                        <button @click="previewContent" :disabled="!canPreview"
+                            class="flex items-center gap-2 px-3 py-2 text-sm border border-neutral-300 rounded-md transition-colors duration-200"
+                            :class="canPreview 
+                                ? 'text-neutral-700 hover:bg-neutral-50 hover:border-neutral-400' 
+                                : 'text-neutral-400 cursor-not-allowed'">
                             <i class="pi pi-eye"></i>
                             Vista Previa
                         </button>
@@ -115,11 +118,18 @@
                                 class="pi pi-image text-4xl text-neutral-400 group-hover:text-primary-400 transition-colors"></i>
                             <p class="text-sm text-neutral-600">Haz clic para subir una imagen destacada</p>
                             <p class="text-xs text-neutral-500">Recomendado: 1200x630px</p>
+                            <p class="text-xs text-primary-600" v-if="isProcessingImage">
+                                <i class="pi pi-spin pi-spinner mr-1"></i>
+                                Procesando imagen...
+                            </p>
                         </div>
                         <div v-else class="space-y-2">
                             <img :src="article.featuredImage" alt="Imagen destacada"
                                 class="mx-auto h-32 w-full object-cover rounded-md border border-neutral-200">
                             <p class="text-sm text-primary-600 font-medium">Imagen destacada seleccionada</p>
+                            <p class="text-xs text-neutral-500" v-if="featuredImageSize">
+                                Tamaño: {{ featuredImageSize }}
+                            </p>
                             <button @click.stop="removeFeaturedImage"
                                 class="text-secondary-600 hover:text-secondary-700 text-sm transition-colors duration-200 flex items-center justify-center mx-auto">
                                 <i class="pi pi-trash mr-1"></i>
@@ -146,9 +156,9 @@
                             {{ isSaving ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Publicar') }}
                         </button>
 
-                        <button @click="previewContent" :disabled="!article.content" :class="[
+                        <button @click="previewContent" :disabled="!canPreview" :class="[
                             'w-full py-2 border rounded-md transition-colors duration-200 text-base flex items-center justify-center',
-                            article.content
+                            canPreview
                                 ? 'border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-neutral-400'
                                 : 'border-neutral-200 text-neutral-400 cursor-not-allowed'
                         ]">
@@ -180,6 +190,8 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import TiptapEditor from '@/components/content/TiptapEditor.vue'
+import { processImage, validateImage, fileToBase64 } from '@/utils/imageProcessor'
+import { generateContentPreview, validateContentForPreview } from '@/utils/contentPreview'
 
 const router = useRouter()
 const route = useRoute()
@@ -188,6 +200,7 @@ const route = useRoute()
 const featuredImageInput = ref(null)
 const tagInput = ref('')
 const isSaving = ref(false)
+const isProcessingImage = ref(false)
 const lastSaved = ref(null)
 
 // Estado del artículo
@@ -197,6 +210,7 @@ const article = reactive({
     excerpt: '',
     content: '',
     featuredImage: '',
+    featuredImageFile: null, // Archivo procesado
     category: '',
     tags: [],
     status: 'draft',
@@ -222,6 +236,18 @@ const canSave = computed(() => {
         article.excerpt.trim() !== '' &&
         article.content.trim() !== '' &&
         article.category.trim() !== ''
+})
+
+const canPreview = computed(() => {
+    return validateContentForPreview({
+        content: article.content
+    })
+})
+
+const featuredImageSize = computed(() => {
+    if (!article.featuredImageFile) return ''
+    const sizeKB = (article.featuredImageFile.size / 1024).toFixed(1)
+    return `${sizeKB} KB`
 })
 
 // Métodos
@@ -256,33 +282,56 @@ const openFeaturedImageUpload = () => {
     featuredImageInput.value?.click()
 }
 
-const handleFeaturedImageUpload = (event) => {
+const handleFeaturedImageUpload = async (event) => {
     const file = event.target.files[0]
-    if (file && file.type.startsWith('image/')) {
-        if (file.size > 5 * 1024 * 1024) {
-            alert('La imagen es demasiado grande. Máximo 5MB.')
-            return
-        }
+    if (!file) return
 
-        const reader = new FileReader()
-        reader.onload = (e) => {
-            article.featuredImage = e.target.result
-        }
-        reader.readAsDataURL(file)
+    try {
+        isProcessingImage.value = true
+
+        // Validar imagen usando el procesador
+        validateImage(file)
+
+        // Procesar imagen usando el procesador
+        const processedFile = await processImage(file, 'featured')
+
+        // Convertir a Base64 para vista previa
+        const base64 = await fileToBase64(processedFile)
+
+        // Guardar tanto la vista previa como el archivo procesado
+        article.featuredImage = base64
+        article.featuredImageFile = processedFile
+
+        console.log('✅ Imagen procesada y optimizada')
+
+    } catch (error) {
+        console.error('Error procesando imagen:', error)
+        alert(`Error: ${error.message}`)
+    } finally {
+        isProcessingImage.value = false
+        event.target.value = ''
     }
-    event.target.value = ''
 }
 
 const removeFeaturedImage = () => {
     article.featuredImage = ''
+    article.featuredImageFile = null
 }
 
-// Manejo de imágenes del editor
+// Manejo de imágenes del editor usando el procesador
 const handleEditorImageUpload = async (file) => {
     try {
-        // En una implementación real, aquí subirías la imagen a tu servidor
+        // Validar imagen usando el procesador
+        validateImage(file)
+
+        // Procesar imagen para contenido usando el procesador
+        const processedFile = await processImage(file, 'content')
+
+        console.log(`📷 Imagen del editor procesada: ${(processedFile.size / 1024).toFixed(1)} KB`)
+
+        // En una implementación real, aquí subirías el archivo procesado
         const formData = new FormData()
-        formData.append('image', file)
+        formData.append('image', processedFile)
 
         // Simulación de upload
         const response = await fetch('/api/articles/upload-image', {
@@ -318,21 +367,41 @@ const saveArticle = async (status = 'draft') => {
     article.status = status
 
     try {
-        // Simular guardado en base de datos
-        console.log('Guardando artículo:', article)
+        // Crear FormData para enviar archivos
+        const formData = new FormData()
 
-        // Aquí iría tu llamada a la API
+        // Agregar datos del artículo
+        formData.append('title', article.title)
+        formData.append('excerpt', article.excerpt)
+        formData.append('content', article.content)
+        formData.append('category', article.category)
+        formData.append('status', status)
+        formData.append('author', article.author)
+        formData.append('tags', JSON.stringify(article.tags))
+
+        // Agregar imagen destacada procesada si existe
+        if (article.featuredImageFile) {
+            formData.append('featuredImage', article.featuredImageFile)
+            console.log(`📤 Enviando imagen procesada: ${featuredImageSize.value}`)
+        }
+
+        // Simular guardado en base de datos
+        console.log('💾 Guardando artículo:', {
+            title: article.title,
+            imageSize: article.featuredImageFile ? featuredImageSize.value : 'Sin imagen',
+            contentLength: article.content.length
+        })
+
+        // Aquí iría tu llamada real a la API
         // const response = await fetch('/api/articles', {
         //   method: article.id ? 'PUT' : 'POST',
         //   headers: {
-        //     'Content-Type': 'application/json',
         //     'Authorization': `Bearer ${localStorage.getItem('token')}`
         //   },
-        //   body: JSON.stringify(article)
+        //   body: formData // Usar FormData en lugar de JSON
         // })
 
         // if (!response.ok) throw new Error('Error al guardar')
-
         // const savedArticle = await response.json()
 
         // Simulación de éxito
@@ -361,76 +430,15 @@ const saveArticle = async (status = 'draft') => {
 }
 
 const previewContent = () => {
-    if (!article.content.trim()) {
-        alert('No hay contenido para previsualizar.')
-        return
-    }
-
-    const previewWindow = window.open('', '_blank')
-    const previewHTML = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Vista Previa: ${article.title || 'Sin título'}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 20px; 
-            line-height: 1.6;
-            color: #374151;
-          }
-          .article-header { 
-            text-align: center; 
-            margin-bottom: 40px; 
-            border-bottom: 2px solid #22c55e;
-            padding-bottom: 20px;
-          }
-          .article-content { 
-            line-height: 1.8; 
-          }
-          .featured-image { 
-            width: 100%; 
-            height: auto; 
-            border-radius: 8px; 
-            margin: 20px 0; 
-            max-height: 400px;
-            object-fit: cover;
-          }
-          h1 { color: #1f2937; font-size: 2.5em; margin-bottom: 20px; }
-          h2 { color: #1f2937; font-size: 2em; margin: 30px 0 15px 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; }
-          h3 { color: #1f2937; font-size: 1.5em; margin: 25px 0 10px 0; }
-          p { margin: 15px 0; }
-          blockquote { 
-            border-left: 4px solid #22c55e; 
-            padding-left: 1em; 
-            margin: 20px 0; 
-            font-style: italic; 
-            color: #6b7280; 
-            background-color: #f9fafb;
-            padding: 15px;
-            border-radius: 0 8px 8px 0;
-          }
-          img { max-width: 100%; height: auto; border-radius: 8px; margin: 20px 0; }
-        </style>
-      </head>
-      <body>
-        <div class="article-header">
-          <h1>${article.title || 'Sin título'}</h1>
-          ${article.featuredImage ? `<img src="${article.featuredImage}" alt="Imagen destacada" class="featured-image">` : ''}
-          <p><em>${article.excerpt || 'Sin descripción'}</em></p>
-          <p><strong>Por: ${article.author}</strong></p>
-          <p><small>${article.category ? `Categoría: ${article.category}` : ''}</small></p>
-        </div>
-        <div class="article-content">${article.content}</div>
-      </body>
-    </html>
-  `
-
-    previewWindow.document.write(previewHTML)
-    previewWindow.document.close()
+    generateContentPreview({
+        title: article.title,
+        excerpt: article.excerpt,
+        content: article.content,
+        featuredImage: article.featuredImage,
+        author: article.author,
+        category: article.category,
+        type: 'article'
+    })
 }
 
 const deleteArticle = () => {
@@ -442,26 +450,11 @@ const deleteArticle = () => {
     }
 }
 
-// Generar slug automáticamente desde el título
-const generateSlug = (text) => {
-    return text
-        .toLowerCase()
-        .replace(/[^\w ]+/g, '')
-        .replace(/ +/g, '-')
-}
-
 // Cargar artículo si estamos editando
 onMounted(() => {
     if (route.params.id) {
         loadArticle(route.params.id)
     }
-
-    // Generar slug cuando cambie el título
-    // watch(() => article.title, (newTitle) => {
-    //   if (newTitle && !article.slug) {
-    //     article.slug = generateSlug(newTitle)
-    //   }
-    // })
 })
 
 const loadArticle = async (id) => {

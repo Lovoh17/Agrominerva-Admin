@@ -107,12 +107,22 @@
                             <i
                                 class="pi pi-image text-4xl text-neutral-400 group-hover:text-primary-400 transition-colors"></i>
                             <p class="text-sm text-neutral-600">Haz clic para subir una imagen destacada</p>
-                            <p class="text-xs text-neutral-500">Recomendado: 1200x630px</p>
+                            <p class="text-xs text-neutral-500">Recomendado: 1200x630px • Máximo 10MB</p>
+                            <p class="text-xs text-primary-600" v-if="isProcessingImage">
+                                <i class="pi pi-spin pi-spinner mr-1"></i>
+                                Procesando imagen...
+                            </p>
                         </div>
                         <div v-else class="space-y-2">
                             <img :src="article.featuredImage" alt="Imagen destacada"
                                 class="mx-auto h-32 w-full object-cover rounded-md border border-neutral-200">
                             <p class="text-sm text-primary-600 font-medium">Imagen destacada seleccionada</p>
+                            <p class="text-xs text-neutral-500">
+                                Tamaño: {{ featuredImageSize }}
+                                <span v-if="compressionStats" class="text-primary-600">
+                                    • Reducido {{ compressionStats.percentage }}%
+                                </span>
+                            </p>
                             <button @click.stop="removeFeaturedImage"
                                 class="text-secondary-600 hover:text-secondary-700 text-sm transition-colors duration-200 flex items-center justify-center mx-auto">
                                 <i class="pi pi-trash mr-1"></i>
@@ -173,7 +183,8 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import TiptapEditor from '@/components/content/TiptapEditor.vue'
-import { generateContentPreview, validateContentForPreview } from '@/utils/contentPreview'
+import { generateContentPreview } from '@/utils/contentPreview'
+import { processImage, validateImage, fileToBase64 } from '@/utils/imageProcessor'
 
 const router = useRouter()
 const route = useRoute()
@@ -182,7 +193,9 @@ const route = useRoute()
 const featuredImageInput = ref(null)
 const tagInput = ref('')
 const isSaving = ref(false)
+const isProcessingImage = ref(false)
 const lastSaved = ref(null)
+const compressionStats = ref(null)
 
 // Estado del artículo
 const article = reactive({
@@ -191,6 +204,7 @@ const article = reactive({
     excerpt: '',
     content: '',
     featuredImage: '',
+    featuredImageFile: null, // Archivo procesado
     category: '',
     tags: [],
     status: 'draft',
@@ -216,6 +230,12 @@ const canSave = computed(() => {
         article.excerpt.trim() !== '' &&
         article.content.trim() !== '' &&
         article.category.trim() !== ''
+})
+
+const featuredImageSize = computed(() => {
+    if (!article.featuredImageFile) return ''
+    const sizeKB = (article.featuredImageFile.size / 1024).toFixed(1)
+    return `${sizeKB} KB`
 })
 
 // Métodos
@@ -250,33 +270,69 @@ const openFeaturedImageUpload = () => {
     featuredImageInput.value?.click()
 }
 
-const handleFeaturedImageUpload = (event) => {
+const handleFeaturedImageUpload = async (event) => {
     const file = event.target.files[0]
-    if (file && file.type.startsWith('image/')) {
-        if (file.size > 5 * 1024 * 1024) {
-            alert('La imagen es demasiado grande. Máximo 5MB.')
-            return
+    if (!file) return
+
+    try {
+        isProcessingImage.value = true
+        compressionStats.value = null
+
+        // Validar imagen
+        validateImage(file)
+
+        // Guardar tamaño original para estadísticas
+        const originalSize = file.size
+
+        // Procesar imagen (comprimir y redimensionar)
+        const processedFile = await processImage(file, 'featured')
+
+        // Convertir a Base64 para vista previa
+        const base64 = await fileToBase64(processedFile)
+
+        // Guardar tanto la vista previa como el archivo procesado
+        article.featuredImage = base64
+        article.featuredImageFile = processedFile
+
+        // Calcular estadísticas de compresión
+        const percentage = ((1 - processedFile.size / originalSize) * 100).toFixed(1)
+        compressionStats.value = {
+            original: (originalSize / 1024 / 1024).toFixed(2),
+            compressed: (processedFile.size / 1024 / 1024).toFixed(2),
+            percentage: percentage
         }
 
-        const reader = new FileReader()
-        reader.onload = (e) => {
-            article.featuredImage = e.target.result
-        }
-        reader.readAsDataURL(file)
+        console.log(`✅ Imagen procesada: ${percentage}% de reducción`)
+
+    } catch (error) {
+        console.error('Error procesando imagen:', error)
+        alert(`Error: ${error.message}`)
+    } finally {
+        isProcessingImage.value = false
+        event.target.value = ''
     }
-    event.target.value = ''
 }
 
 const removeFeaturedImage = () => {
     article.featuredImage = ''
+    article.featuredImageFile = null
+    compressionStats.value = null
 }
 
-// Manejo de imágenes del editor
+// Manejo de imágenes del editor (con compresión)
 const handleEditorImageUpload = async (file) => {
     try {
-        // En una implementación real, aquí subirías la imagen a tu servidor
+        // Validar imagen
+        validateImage(file)
+
+        // Procesar imagen para contenido
+        const processedFile = await processImage(file, 'content')
+
+        console.log(`📷 Imagen del editor procesada: ${(processedFile.size / 1024).toFixed(1)} KB`)
+
+        // En una implementación real, aquí subirías el archivo procesado
         const formData = new FormData()
-        formData.append('image', file)
+        formData.append('image', processedFile)
 
         // Simulación de upload
         const response = await fetch('/api/articles/upload-image', {
@@ -312,21 +368,41 @@ const saveArticle = async (status = 'draft') => {
     article.status = status
 
     try {
-        // Simular guardado en base de datos
-        console.log('Guardando artículo:', article)
+        // Crear FormData para enviar archivos
+        const formData = new FormData()
 
-        // Aquí iría tu llamada a la API
+        // Agregar datos del artículo
+        formData.append('title', article.title)
+        formData.append('excerpt', article.excerpt)
+        formData.append('content', article.content)
+        formData.append('category', article.category)
+        formData.append('status', status)
+        formData.append('author', article.author)
+        formData.append('tags', JSON.stringify(article.tags))
+
+        // Agregar imagen destacada procesada si existe
+        if (article.featuredImageFile) {
+            formData.append('featuredImage', article.featuredImageFile)
+            console.log(`📤 Enviando imagen procesada: ${featuredImageSize.value}`)
+        }
+
+        // Simular guardado en base de datos
+        console.log('💾 Guardando artículo:', {
+            title: article.title,
+            imageSize: article.featuredImageFile ? featuredImageSize.value : 'Sin imagen',
+            contentLength: article.content.length
+        })
+
+        // Aquí iría tu llamada real a la API
         // const response = await fetch('/api/articles', {
         //   method: article.id ? 'PUT' : 'POST',
         //   headers: {
-        //     'Content-Type': 'application/json',
         //     'Authorization': `Bearer ${localStorage.getItem('token')}`
         //   },
-        //   body: JSON.stringify(article)
+        //   body: formData // Usar FormData en lugar de JSON
         // })
 
         // if (!response.ok) throw new Error('Error al guardar')
-
         // const savedArticle = await response.json()
 
         // Simulación de éxito
@@ -362,7 +438,7 @@ const previewContent = () => {
         featuredImage: article.featuredImage,
         author: article.author,
         category: article.category,
-        type: 'news' // o 'article' según corresponda
+        type: 'news'
     })
 }
 
@@ -373,14 +449,6 @@ const deleteArticle = () => {
         alert('Noticia eliminada exitosamente')
         router.push('/admin/contenido')
     }
-}
-
-// Generar slug automáticamente desde el título
-const generateSlug = (text) => {
-    return text
-        .toLowerCase()
-        .replace(/[^\w ]+/g, '')
-        .replace(/ +/g, '-')
 }
 
 // Cargar artículo si estamos editando
